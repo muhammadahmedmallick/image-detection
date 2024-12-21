@@ -5,7 +5,8 @@ const path = require('path');
 
 const app = express();
 const port = 3000;
-
+app.use(express.json()); // Add this line if you're handling JSON requests
+app.use(express.urlencoded({ extended: true })); // Add this line for form data (optional)
 // Multer setup for multiple file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
