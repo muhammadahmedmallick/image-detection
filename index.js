@@ -68,67 +68,37 @@ app.post('/compare', upload.fields([
     try {
         const files = req.files;
 
-        if (!files.image1 && !files.image2) {
-            return res.status(400).json({ error: 'At least one image (image1 or image2) is required.' });
+        // Ensure both image1 and image2 are provided, and captured_image is mandatory
+        if (!files.image1 || !files.image2) {
+            return res.status(400).json({ error: 'Both image1 and image2 must be provided.' });
         }
 
-        let result1 = null;
-        let result2 = null;
-
-        // If image1 is provided, compare it with captured_image
-        if (files.image1) {
-            if (!files.captured_image) {
-                return res.status(400).json({ error: 'Captured image is required if image1 is provided.' });
-            }
-            result1 = await compareImages(files.image1[0].path, files.captured_image[0].path);
+        if (!files.captured_image) {
+            return res.status(400).json({ error: 'Captured image is required.' });
         }
 
-        // If image2 is provided, compare it with captured_image or image1 (whichever is present)
-        if (files.image2) {
-            if (!files.captured_image && !files.image1) {
-                return res.status(400).json({ error: 'Captured image or image1 must be provided if image2 is present.' });
-            }
-            if (files.image1) {
-                result2 = await compareImages(files.image1[0].path, files.image2[0].path);
-            } else if (files.captured_image) {
-                result2 = await compareImages(files.captured_image[0].path, files.image2[0].path);
-            }
-        }
+        // Compare image1 with captured_image
+        const result1 = await compareImages(files.image1[0].path, files.captured_image[0].path);
 
+        // Compare image2 with captured_image
+        const result2 = await compareImages(files.image2[0].path, files.captured_image[0].path);
+
+        // Determine the best match
         let bestMatch = null;
 
-        // Determine the best match based on similarity (if comparisons were made)
-        if (result1 && result2) {
-            if (result1.similarity > result2.similarity) {
+        // If both matches are found, compare their similarity and return the better match
+        if (result1.match && result2.match) {
+            if (result1.similarity > 80 && result2.similarity > 80) {
                 bestMatch = {
                     matchFound: true,
-                    similarity: result1.similarity,
-                    matchedImage: 'captured_image'
-                };
-            } else if (result2.similarity > result1.similarity) {
-                bestMatch = {
-                    matchFound: true,
-                    similarity: result2.similarity,
-                    matchedImage: 'image2'
-                };
+                    similarity: result1.similarity > result2.similarity ? result1.similarity : result2.similarity,
+                }
             } else {
                 bestMatch = {
                     matchFound: false,
                     similarity: 0
                 };
             }
-        } else if (result1) {
-            bestMatch = {
-                matchFound: true,
-                similarity: result1.similarity,
-                matchedImage: 'captured_image'
-            };
-        } else if (result2) {
-            bestMatch = {
-                matchFound: true,
-                similarity: result2.similarity,
-                matchedImage: 'image2'
-            };
         } else {
             bestMatch = {
                 matchFound: false,
