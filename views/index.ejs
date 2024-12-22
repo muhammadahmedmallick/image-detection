@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Comparison</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+    <style>
+        /* Loader Styling */
+        .spinner {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #3498db; /* Blue */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-8">
+        <h1 class="text-3xl font-bold mb-4">Upload Images for Comparison</h1>
+        
+        <form id="imageForm" action="/compare" method="POST" enctype="multipart/form-data">
+            <div class="mb-4">
+                <label for="image1" class="block text-xl">Image 1</label>
+                <input type="file" name="image1" id="image1" required class="border border-gray-300 p-2 mt-2">
+            </div>
+            <div class="mb-4">
+                <label for="captured_image" class="block text-xl">Captured Image</label>
+                <input type="file" name="captured_image" id="captured_image" required class="border border-gray-300 p-2 mt-2">
+            </div>
+            <div class="mb-4">
+                <label for="image2" class="block text-xl">Image 2</label>
+                <input type="file" name="image2" id="image2" required class="border border-gray-300 p-2 mt-2">
+            </div>
+            <button type="submit" class="bg-blue-500 text-white p-2 mt-4 rounded">Submit</button>
+        </form>
+
+        <!-- Loader Element (Initially Hidden) -->
+        <div id="loader" class="flex justify-center items-center mt-6 hidden">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Result Display -->
+        <div id="result" class="mt-6 hidden">
+            <h2 class="text-2xl font-semibold">Comparison Result:</h2>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Handle form submission and display loader
+        document.getElementById('imageForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Show loader while processing
+            document.getElementById('loader').classList.remove('hidden');
+            const resultDiv = document.getElementById('result');
+            const resultContent = document.getElementById('resultContent');
+            resultDiv.classList.add('hidden');  // Hide result initially
+
+            const formData = new FormData(this);
+
+            try {
+                // Send form data to the server
+                const response = await fetch('/compare', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                // Hide the loader once the response is received
+                document.getElementById('loader').classList.add('hidden');
+                resultDiv.classList.remove('hidden');
+
+                // Display result
+                if (data.matchFound) {
+                    resultContent.innerHTML = `<p>Match found with ${data.matchedImage} with similarity of ${data.similarity}%</p>`;
+                } else {
+                    resultContent.innerHTML = `<p>No match found.</p>`;
+                }
+            } catch (error) {
+                console.error(error);
+                document.getElementById('loader').classList.add('hidden');
+                alert('Error during comparison');
+            }
+        });
+    </script>
+</body>
+</html>
