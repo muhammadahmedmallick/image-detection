@@ -55,12 +55,17 @@ app.post('/compare', upload.fields([
         if (!files.captured_image) {
             return res.status(400).json({ error: 'Captured image is required.' });
         }
-
+        console.log("Before images compare1")
         // Compare image1 with captured_image
         const result1 = await compareImages(files.image1[0].path, files.captured_image[0].path);
+        console.log("After images compare1 "+JSON.stringify(result1))
+
+        console.log("Before images compare2")
 
         // Compare image2 with captured_image
         const result2 = await compareImages(files.image2[0].path, files.captured_image[0].path);
+        console.log("After images compare2 "+JSON.stringify(result2))
+
 
         // Determine the best match
         let bestMatch = null;
