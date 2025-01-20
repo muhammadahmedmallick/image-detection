@@ -94,25 +94,12 @@ app.post('/compare', upload.fields([
                     matchedImage: 'image1'  // Arbitrary choice in case of same similarity
                 };
             }
-        } else if (result1.match) {
-            bestMatch = {
-                matchFound: true,
-                similarity: result1.similarity,
-                matchedImage: 'image1'
-            };
-        } else if (result2.match) {
-            bestMatch = {
-                matchFound: true,
-                similarity: result2.similarity,
-                matchedImage: 'image2'
-            };
-        } else {
+        }  else {
             bestMatch = {
                 matchFound: false,
                 similarity: 0
             };
         }
-
         // Send response with the best match
         res.json(bestMatch);
 
